@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration>
+    <!-- 这样配置打印日志console，也可以选择打印到日志文件的appender -->
+    <appender name="console" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>
+                %d [%t] [reqId:%X{requestId}] %-5level %logger{36} - %msg%n
+            </pattern>
+        </encoder>
+    </appender>
+
+    <!-- 基础的日志输出级别 -->
+    <root level="DEBUG">
+        <appender-ref ref="console"/>
+    </root>
+
+     指定具体的包路径打印的日志级别
+    <logger name="com.ksyun.exam.service">
+        <level value="DEBUG"/>
+    </logger>
+
+</configuration>
+
