@@ -6,22 +6,28 @@ import com.ksyun.exam.mapper.module.UserRecord;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.junit.jupiter.api.Test;
+import org.mybatis.dynamic.sql.insert.render.InsertSelectStatementProvider;
+import org.mybatis.dynamic.sql.insert.render.InsertStatementProvider;
 import org.mybatis.dynamic.sql.render.RenderingStrategies;
 import org.mybatis.dynamic.sql.select.render.SelectStatementProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-import static org.mybatis.dynamic.sql.SqlBuilder.isEqualTo;
-import static org.mybatis.dynamic.sql.SqlBuilder.select;
+import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 @SpringBootTest
 class Demo1ApplicationTests {
 
     @Autowired
     private SqlSessionFactory sqlSessionFactory;
+
+
+    @Autowired
+    private UserMapper userMapper;
 
     @Test
     void contextLoads() {
@@ -30,24 +36,25 @@ class Demo1ApplicationTests {
 
     @Test
     void testGeneralSelect(){
-        try(SqlSession session=sqlSessionFactory.openSession()){
-            UserMapper mapper = session.getMapper(UserMapper.class);
-            SelectStatementProvider selectStatement = select(UserDynamicSqlSupport.id, UserDynamicSqlSupport.balanceAmount)
-                    .from(UserDynamicSqlSupport.user)
-//                    .where(UserDynamicSqlSupport.id, isEqualTo(1L))
-                    .build()
-                    .render(RenderingStrategies.MYBATIS3);
-            List<UserRecord> rows=mapper.selectMany(selectStatement);
-            System.out.println(rows);
-        }
+        SelectStatementProvider selectStatement = select(UserDynamicSqlSupport.id, UserDynamicSqlSupport.balanceAmount)
+                .from(UserDynamicSqlSupport.user)
+                .where(UserDynamicSqlSupport.id, isEqualTo(1L))
+                .build()
+                .render(RenderingStrategies.MYBATIS3);
+        List<UserRecord> rows=userMapper.selectMany(selectStatement);
+        System.out.println(rows);
     }
 
     @Test
     void testGeneralInsert(){
-        try(SqlSession session=sqlSessionFactory.openSession()){
-            UserMapper mapper = session.getMapper(UserMapper.class);
-
-        }
+        UserRecord row=new UserRecord(2L, new BigDecimal("100"));
+        InsertStatementProvider<UserRecord> insertStatement=insert(row)
+                .into(UserDynamicSqlSupport.user)
+                .map(UserDynamicSqlSupport.id).toProperty("id")
+                .map(UserDynamicSqlSupport.balanceAmount).toProperty("balanceAmount")
+                .build()
+                .render(RenderingStrategies.MYBATIS3);
+        userMapper.insert(insertStatement);
     }
 
 }

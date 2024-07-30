@@ -6,6 +6,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Getter
+@ToString
 public class FundSystemResponse {
 
     private int code;
