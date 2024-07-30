@@ -1,4 +1,4 @@
-package org.example.javacache.config;
+package com.ksyun.exam.config;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 import org.springframework.cache.CacheManager;

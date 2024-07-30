@@ -5,6 +5,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import java.math.BigDecimal;
 
 @SpringBootTest
 public class OnePassServiceTest {
@@ -21,7 +22,9 @@ public class OnePassServiceTest {
         onePassService.batchPay("98312888830",uids);
         //查询
         onePassService.queryUserAmount(uids);
-
-
+        //转账
+        onePassService.userTrade(600001L,600002L,new BigDecimal("10"));
+        //查询
+        onePassService.queryUserAmount(uids);
     }
 }

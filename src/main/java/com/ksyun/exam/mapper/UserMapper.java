@@ -3,7 +3,6 @@ package com.ksyun.exam.mapper;
 import java.util.List;
 import java.util.Optional;
 
-import com.ksyun.exam.mapper.module.UserDynamicSqlSupport;
 import com.ksyun.exam.mapper.module.UserRecord;
 import org.apache.ibatis.annotations.*;
 import org.apache.ibatis.type.JdbcType;

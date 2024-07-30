@@ -33,12 +33,13 @@ public class OnePassService {
         this.fundSystemService = fundSystemService;
     }
 
-    public String batchPay(String batchPayId, List<Long> uids) {
+    public boolean batchPay(String batchPayId, List<Long> uids) {
 
         BigDecimal precision = new BigDecimal("0.01"); // 两位小数
         for(Long uid : uids) {
             BigDecimal balanceAmount = new BigDecimal(0);
             BigDecimal curPayAmount = new BigDecimal(MAX_PAY_AMOUNT);
+            boolean isInsert = true;
 
             while(curPayAmount.compareTo(precision) >= 0) {
                 FundSystemResponse response =fundSystemService.pay(uid,curPayAmount);
@@ -50,21 +51,28 @@ public class OnePassService {
                         break;
                     curPayAmount=curPayAmount.divide(new BigDecimal(2),2, RoundingMode.HALF_UP);
                 } else if(code==404){   //用户不存在
-                    throw new RuntimeException("pay error: user not exist");
+                    log.error("pay error: user not exist");
+                    isInsert=false;
+                    break;
                 } else{
-                    throw new RuntimeException("pay error: unknown code");
+                    log.error("pay error: unknown code");
                 }
             }
 
             //insert into db
-            userService.insertOne(uid,balanceAmount);
+            if(isInsert)
+                userService.insertOne(uid,balanceAmount);
         }
 
         int finishCode= fundSystemService.batchPayFinish(batchPayId).getCode();
         if(finishCode!=200){
-            throw new RuntimeException("batchPayFinish error");
+            log.error("batchPayFinish error");
+            return false;
+        }else{
+            log.info("batchPayFinish success");
+            return true;
         }
-        return "batchPay";
+
     }
 
     @Transactional
@@ -73,13 +81,15 @@ public class OnePassService {
         Optional<UserRecord> sourceUser=userService.selectOneById(sourceUid);
         Optional<UserRecord> targetUser=userService.selectOneById(targetUid);
 
-        if(!sourceUser.isPresent()||!targetUser.isPresent()){
-            throw new RuntimeException("user not exist");
+        if(!sourceUser.isPresent()||!targetUser.isPresent()) {
+            log.error("user not exist");
+            return false;
         }
 
         BigDecimal sourcePayedAmount = sourceUser.get().getBalanceAmount().subtract(amount);
         if(sourcePayedAmount.compareTo(BigDecimal.ZERO)<0){
-            throw new RuntimeException("balance not enough");
+            log.error("balance not enough");
+            return false;
         }
         userService.updateBalanceAmountById(sourceUid, sourcePayedAmount);
         userService.updateBalanceAmountById(targetUid, targetUser.get().getBalanceAmount().add(amount));
@@ -94,7 +104,7 @@ public class OnePassService {
             Optional<UserRecord> user=userService.selectOneById(uid);
             user.ifPresent(users::add);
         }
-        log.info("queryUserAmount:{}",users);
+        users.forEach(user->log.debug("queryUserAmount:{}",user.toString()));
         return users;
     }
 }
