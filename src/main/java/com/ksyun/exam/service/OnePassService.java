@@ -109,9 +109,14 @@ public class OnePassService {
 
     @Transactional
     public boolean userTrade(Long sourceUid, Long targetUid, BigDecimal amount) {
+        if(amount.compareTo(new BigDecimal(MIN_PAY_AMOUNT)) < 0 || amount.compareTo(new BigDecimal(MAX_PAY_AMOUNT)) > 0) {
+            log.error("amount out of range");
+            throw new ArithmeticException("amount out of range");
+        }
+
         if (!redisService.isExist(sourceUid) || !redisService.isExist(targetUid)) {
             log.error("user not exist");
-            return false;
+            throw new RuntimeException("user not exist");
         }
         //加锁
         lock.lock();

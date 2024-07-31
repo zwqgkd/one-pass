@@ -1,6 +1,7 @@
 package com.ksyun.exam.controller;
 
 import com.ksyun.exam.model.ErrorResponse;
+import com.ksyun.exam.model.FundSystemResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
@@ -17,35 +18,42 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({RestClientResponseException.class})
     @ResponseBody
     @ResponseStatus
-    public ErrorResponse handleRestClientException(HttpServletRequest request, RestClientResponseException e) {
+    public FundSystemResponse handleRestClientException(HttpServletRequest request, RestClientResponseException e) {
         log.error("handleRestClientException", e);
-        ErrorResponse response = new ErrorResponse();
-        response.setErrorCode("SystemError");
-        response.setErrorMsg(e.getMessage());
-        return response;
+        return new FundSystemResponse(
+                400,
+                "BadRequest",
+                "null",
+                e.getMessage()
+        );
     }
 
     @ExceptionHandler({ArithmeticException.class})
     @ResponseBody
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public ErrorResponse handleArithmeticException(HttpServletRequest request, ArithmeticException e) {
+    public FundSystemResponse handleArithmeticException(HttpServletRequest request, ArithmeticException e) {
         log.error("handleArithmeticException request method: {}, uri: {}",
                 request.getMethod(), request.getRequestURI(), e);
-        ErrorResponse response = new ErrorResponse();
-        response.setErrorCode("BadRequest");
-        response.setErrorMsg(e.getMessage());
-        return response;
+        FundSystemResponse response = new FundSystemResponse();
+        return new FundSystemResponse(
+                400,
+                "BadRequest",
+                "null",
+                e.getMessage()
+        );
     }
 
     @ExceptionHandler
     @ResponseBody
     @ResponseStatus
-    public ErrorResponse handleAllException(HttpServletRequest request, Throwable e) {
+    public FundSystemResponse handleAllException(HttpServletRequest request, Throwable e) {
         log.error("handleAllException request method: {}, uri: {}",
                 request.getMethod(), request.getRequestURI(), e);
-        ErrorResponse response = new ErrorResponse();
-        response.setErrorCode("UnExpectedError");
-        response.setErrorMsg(e.getMessage());
-        return response;
+        return new FundSystemResponse(
+                400,
+                "InternalServerError",
+                "null",
+                e.getMessage()
+        );
     }
 }

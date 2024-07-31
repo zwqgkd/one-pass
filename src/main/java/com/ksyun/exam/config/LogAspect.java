@@ -8,6 +8,10 @@ import org.aspectj.lang.annotation.Pointcut;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.aspectj.lang.annotation.Aspect;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
+
+import javax.servlet.http.HttpServletRequest;
 
 @Component
 @Aspect
@@ -27,14 +31,16 @@ public class LogAspect {
         long start = System.currentTimeMillis();
         String className = joinPoint.getTarget().getClass().getSimpleName();
         String methodName = joinPoint.getSignature().getName();
+        Object[] args = joinPoint.getArgs();
+        String requestId = args[0].toString();
         // 设置请求requestId
-        LogUtil.startTrace();
+        LogUtil.startTrace(requestId);
         try {
-            Object[] args = joinPoint.getArgs();
-            log.info("{} {} 开始执行, 请求参数: {}", className, methodName, args);
+
+            log.info("{} {} 开始执行, 请求Id: {}", className, methodName, requestId);
             // 调用目标方法
             Object result = joinPoint.proceed();
-            log.info("{} {} 执行结束, 响应内容: {}", className, methodName, args);
+            log.info("{} {} 执行结束, 响应Id: {}", className, methodName, requestId);
             return result;
         } catch (Throwable e) {
             // 发送告警等
