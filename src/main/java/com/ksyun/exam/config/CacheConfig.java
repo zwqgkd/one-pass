@@ -20,8 +20,6 @@ import java.util.concurrent.TimeUnit;
 public class CacheConfig {
 
     public static final String TEN_MINUTES_CACHE = "tenMinutesCache";
-    public static final String META_DATA_CACHE = "metaDataCache";
-    public static final String EAC_META_DATA_CACHE = "eacMetaDataCache";
 
     @Bean
     public CacheManager cacheManager() {
@@ -40,15 +38,6 @@ public class CacheConfig {
         //都找不到相应的cache时，不返回null，而是返回Spring内置的NOPCache
         compositeCacheManager.setFallbackToNoOpCache(true);
         return compositeCacheManager;
-    }
-
-    private CaffeineCache buildBaseDataCache(String name) {
-        return new CaffeineCache(name, Caffeine.newBuilder()
-                //写入2小时后过期
-                .expireAfterWrite(2L, TimeUnit.HOURS)
-                .initialCapacity(200)
-                .maximumSize(1500L)
-                .build());
     }
 
     private CaffeineCache buildTenMinutesCache(String name) {

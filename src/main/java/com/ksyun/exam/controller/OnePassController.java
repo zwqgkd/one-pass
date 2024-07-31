@@ -1,6 +1,7 @@
 package com.ksyun.exam.controller;
 
 
+import com.ksyun.exam.config.LogAnnotation;
 import com.ksyun.exam.model.BatchPayRequest;
 import com.ksyun.exam.model.QueryUserAmountResponse;
 import com.ksyun.exam.model.TradeRequest;
@@ -23,6 +24,7 @@ public class OnePassController {
         this.onePassService = onePassService;
     }
 
+    @LogAnnotation
     @PostMapping("/batchPay")
     public boolean batchPay(@RequestBody BatchPayRequest request) {
         String batchPayId = request.getBatchPayId();
@@ -31,6 +33,7 @@ public class OnePassController {
         return onePassService.batchPay(batchPayId, uids);
     }
 
+    @LogAnnotation
     @PostMapping("/userTrade")
     public boolean userTrade(@RequestBody TradeRequest request) {
         Long sourceUid = request.getSourceUid();
@@ -40,6 +43,7 @@ public class OnePassController {
         return onePassService.userTrade(sourceUid, targetUid, amount);
     }
 
+    @LogAnnotation
     @PostMapping("/queryUserAmount")
     public QueryUserAmountResponse queryUserAmount(@RequestBody List<Long> uids) {
         return new QueryUserAmountResponse(

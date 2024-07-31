@@ -1,0 +1,20 @@
+services:
+  web:
+    container_name: one-pass-web
+    image: one-pass
+    ports:
+      - 50022:8080
+    restart: always
+    watch:
+      path: .
+      action: rebuild
+    depends_on:
+      - one-pass-db
+
+  db:
+    container_name: one-pass-db
+    image: mysql:8
+    environment:
+      MYSQL_ROOT_PASSWORD: zwq12345
+    ports:
+      - 3306:3306

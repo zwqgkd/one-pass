@@ -20,7 +20,7 @@ import java.util.UUID;
 import static org.mybatis.dynamic.sql.SqlBuilder.*;
 
 @SpringBootTest
-class Demo1ApplicationTests {
+class ApplicationTests {
 
     @Autowired
     private SqlSessionFactory sqlSessionFactory;

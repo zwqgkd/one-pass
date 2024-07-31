@@ -15,7 +15,7 @@
         <appender-ref ref="console"/>
     </root>
 
-     指定具体的包路径打印的日志级别
+<!--     指定具体的包路径打印的日志级别-->
     <logger name="com.ksyun.exam.service">
         <level value="DEBUG"/>
     </logger>
