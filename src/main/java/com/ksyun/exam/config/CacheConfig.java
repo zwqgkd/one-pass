@@ -24,11 +24,9 @@ public class CacheConfig {
     @Bean
     public CacheManager cacheManager() {
         SimpleCacheManager simpleCacheManager = new SimpleCacheManager();
-        CaffeineCache metaDataCache = buildBaseDataCache(META_DATA_CACHE);
         CaffeineCache tenMinutesCache = buildTenMinutesCache(TEN_MINUTES_CACHE);
 
         List<CaffeineCache> dataCacheList = new ArrayList<>();
-        dataCacheList.add(metaDataCache);
         dataCacheList.add(tenMinutesCache);
         simpleCacheManager.setCaches(dataCacheList);
 
@@ -48,5 +46,4 @@ public class CacheConfig {
                 .maximumSize(1000L)
                 .build());
     }
-
 }

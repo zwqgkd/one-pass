@@ -10,17 +10,24 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import static org.springframework.transaction.annotation.Isolation.*;
+
 @Slf4j
 @Service
 public class OnePassService {
 
-    private final UserService userService;
+//    private final UserService userService;
+
+    private final RedisService redisService;
 
     private final FundSystemService fundSystemService;
 
@@ -28,12 +35,16 @@ public class OnePassService {
 
     private static final String MAX_PAY_AMOUNT = "10000";
 
+    private final Lock lock = new ReentrantLock();
+
     @Autowired
-    public OnePassService(UserService userService, FundSystemService fundSystemService) {
-        this.userService = userService;
+    public OnePassService(RedisService redisService, FundSystemService fundSystemService) {
+//        this.userService = userService;
+        this.redisService = redisService;
         this.fundSystemService = fundSystemService;
     }
 
+    @Async
     public boolean batchPay(String batchPayId, List<Long> uids) {
 
         BigDecimal precision = new BigDecimal("0.01"); // 两位小数
@@ -60,9 +71,12 @@ public class OnePassService {
                 }
             }
 
-            //insert into db
+//            //insert into db
+//            if(isInsert)
+//                userService.insertOne(uid,balanceAmount);
+            //insert into redis
             if(isInsert)
-                userService.insertOne(uid,balanceAmount);
+                redisService.setValue(uid,balanceAmount);
         }
 
         int finishCode= fundSystemService.batchPayFinish(batchPayId).getCode();
@@ -80,23 +94,38 @@ public class OnePassService {
     @Transactional
     public boolean userTrade(Long sourceUid, Long targetUid, BigDecimal amount) {
         // 从sourceUid账户扣款
-        Optional<UserRecord> sourceUser=userService.selectOneById(sourceUid);
-        Optional<UserRecord> targetUser=userService.selectOneById(targetUid);
-
-        if(!sourceUser.isPresent()||!targetUser.isPresent()) {
+//        Optional<UserRecord> sourceUser=userService.selectOneByIdForUpdate(sourceUid);
+//        Optional<UserRecord> targetUser=userService.selectOneByIdForUpdate(targetUid);
+//
+//        if(!sourceUser.isPresent()||!targetUser.isPresent()) {
+//            log.error("user not exist");
+//            return false;
+//        }
+        if(!redisService.isExist(sourceUid)||!redisService.isExist(targetUid)){
             log.error("user not exist");
             return false;
         }
 
-        BigDecimal sourcePayedAmount = sourceUser.get().getBalanceAmount().subtract(amount);
-        if(sourcePayedAmount.compareTo(BigDecimal.ZERO)<0){
-            log.error("balance not enough");
-            return false;
-        }
-        userService.updateBalanceAmountById(sourceUid, sourcePayedAmount);
-        userService.updateBalanceAmountById(targetUid, targetUser.get().getBalanceAmount().add(amount));
+        //加锁
+        lock.lock();
+        try{
+            BigDecimal sourcePayedAmount = redisService.getValue(sourceUid).subtract(amount);
+            BigDecimal targetPayedAmount = redisService.getValue(targetUid).add(amount);
+            if(sourcePayedAmount.compareTo(BigDecimal.ZERO)<0){
+                log.error("balance not enough");
+                return false;
+            }
 
-        return true;
+            redisService.setValue(sourceUid,sourcePayedAmount);
+            redisService.setValue(targetUid,targetPayedAmount);
+//
+//        userService.updateBalanceAmountById(sourceUid, sourcePayedAmount);
+//        userService.updateBalanceAmountById(targetUid, targetPayedAmount);
+
+            return true;
+        }finally {
+            lock.unlock();
+        }
     }
 
 //    @Async
@@ -104,10 +133,13 @@ public class OnePassService {
         List<UserRecord> users = new ArrayList<>();
 
         for(Long uid:uids){
-            Optional<UserRecord> user=userService.selectOneById(uid);
-            user.ifPresent(users::add);
+//            Optional<UserRecord> user=userService.selectOneById(uid);
+            if(redisService.isExist(uid)){
+                UserRecord user=new UserRecord(uid,redisService.getValue(uid));
+                users.add(user);
+            }
         }
-        users.forEach(user->log.debug("queryUserAmount:{}",user.toString()));
+        users.forEach(user->log.debug("queryUserAmount:{}",user.getBalanceAmount()));
         return users;
     }
 }
