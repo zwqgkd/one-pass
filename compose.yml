@@ -1,20 +1,46 @@
 services:
   web:
     container_name: one-pass-web
-    image: one-pass
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
-      - 50022:8080
+      - "50022:8080"
     restart: always
-    watch:
-      path: .
-      action: rebuild
     depends_on:
-      - one-pass-db
+        - redis
+    volumes:
+      - web-logs:/var/log/one-pass
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
-  db:
-    container_name: one-pass-db
-    image: mysql:8
-    environment:
-      MYSQL_ROOT_PASSWORD: zwq12345
+  redis:
+    container_name: one-pass-redis
+    image: redis:alpine3.20
     ports:
-      - 3306:3306
+      - "6379:6379"
+    restart: always
+    environment:
+      - REDIS_PASSWORD=zwq12345
+    volumes:
+      - redis-data:/data
+    networks:
+      - app-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  app-network:
+    driver: bridge
+
+volumes:
+  web-logs:
+  redis-data:
