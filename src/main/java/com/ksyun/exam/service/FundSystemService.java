@@ -27,7 +27,7 @@ public class FundSystemService {
 
     private final RetryTemplate retryTemplate;
 
-    private static final String SYSTEM_URL= "http://120.92.116.60/thirdpart/onePass";
+    private static final String SYSTEM_URL= "http://172.16.0.90/thirdpart/onePass";
 
     private static final String STUDENT_ID="50022";
 

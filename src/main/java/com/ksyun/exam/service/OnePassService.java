@@ -70,7 +70,7 @@ public class OnePassService {
                             break;
                         curPayAmount = curPayAmount.divide(new BigDecimal(2), 2, RoundingMode.HALF_UP);
                     } else if (code == 404) { // 用户不存在
-                        log.error("pay error: user not exist");
+                        log.error("pay error: user:{} not exist", uid);
                         isInsert = false;
                         break;
                     } else {
