@@ -6,6 +6,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,8 +51,8 @@ public class OnePassService {
         }
     }
 
-    //    @Async
-    public boolean batchPay(String batchPayId, List<Long> uids) {
+    @Async
+    public CompletableFuture<Boolean> batchPay(String batchPayId, List<Long> uids) {
         BigDecimal precision = new BigDecimal("0.01"); // 两位小数
 
         List<Callable<Boolean>> callableTasks = new ArrayList<>();
@@ -89,21 +90,21 @@ public class OnePassService {
             for (Future<Boolean> future : futures) {
                 if (!future.get()) { // 如果某个任务返回false，说明有支付失败
                     log.error("Batch pay error for some users");
-                    return false;
+                    return CompletableFuture.completedFuture(false);
                 }
             }
         } catch (InterruptedException | ExecutionException e) {
             log.error("Exception while waiting for payment tasks to complete", e);
-            return false;
+            return CompletableFuture.completedFuture(false);
         }
 
         int finishCode = fundSystemService.batchPayFinish(batchPayId).getCode();
         if (finishCode != 200) {
             log.error("batchPayFinish error");
-            return false;
+            return CompletableFuture.completedFuture(false);
         } else {
             log.info("batchPayFinish success");
-            return true;
+            return CompletableFuture.completedFuture(true);
         }
     }
 

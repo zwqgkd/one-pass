@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.*;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequestMapping("/onePass")
@@ -34,7 +35,9 @@ public class OnePassController {
         String batchPayId = request.getBatchPayId();
         List<Long> uids = request.getUids();
 
-        onePassService.batchPay(batchPayId, uids);
+        CompletableFuture<Boolean> future = onePassService.batchPay(batchPayId, uids);
+        boolean result = future.join(); // 等待异步方法完成
+
         return new FundSystemResponse(
                 200,
                 "ok",
