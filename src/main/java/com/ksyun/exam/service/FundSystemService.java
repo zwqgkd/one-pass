@@ -3,14 +3,13 @@ package com.ksyun.exam.service;
 import com.ksyun.exam.model.FundSystemResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.retry.RetryCallback;
 import org.springframework.retry.RetryContext;
 import org.springframework.retry.support.RetryTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.LinkedMultiValueMap;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -83,17 +82,20 @@ public class FundSystemService {
         String requestId = UUID.randomUUID().toString();
 
         //set header
-        HttpHeaders requestHeader=new HttpHeaders();
-        requestHeader.add("X-KSY-KINGSTAR-ID",STUDENT_ID);
-        requestHeader.add("X-KSY-REQUEST-ID",requestId);
-
+        HttpHeaders requestHeader = new HttpHeaders();
+        requestHeader.add("X-KSY-KINGSTAR-ID", STUDENT_ID);
+        requestHeader.add("X-KSY-REQUEST-ID", requestId);
+        requestHeader.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
         //set body
-        Map<String, Object> requestBody=new HashMap<>();
-        requestBody.put("batchPayId",batchPayId);
+//        Map<String, Object> requestBody = new HashMap<>();
+//        requestBody.put("batchPayId", batchPayId);
+
+        MultiValueMap<String, String> formData = new LinkedMultiValueMap<>();
+        formData.add("batchPayId", batchPayId);
 
         //create request
-        HttpEntity<Map<String,Object>> requestEntity=new HttpEntity<>(requestBody,requestHeader);
-        log.debug("batchPayFinish request:{}",requestEntity);
+        HttpEntity<MultiValueMap<String, String>> requestEntity = new HttpEntity<>(formData, requestHeader);
+        log.debug("batchPayFinish request:{}", requestEntity);
 
         //send request
         ResponseEntity<FundSystemResponse> response=restTemplate.exchange(SYSTEM_URL+"/batchPayFinish", HttpMethod.POST,requestEntity,FundSystemResponse.class);

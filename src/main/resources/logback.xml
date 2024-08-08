@@ -9,20 +9,20 @@
             </pattern>
         </encoder>
     </appender>
-    <!-- 文件日志输出 -->
-    <appender name="file" class="ch.qos.logback.core.FileAppender">
-        <file>/var/log/one-pass/one-pass.log</file>
-        <encoder>
-            <pattern>
-                %d [%t] [reqId:%X{requestId}] %-5level %logger{36} - %msg%n
-            </pattern>
-        </encoder>
-    </appender>
+<!--    &lt;!&ndash; 文件日志输出 &ndash;&gt;-->
+<!--    <appender name="file" class="ch.qos.logback.core.FileAppender">-->
+<!--        <file>/var/log/one-pass/one-pass.log</file>-->
+<!--        <encoder>-->
+<!--            <pattern>-->
+<!--                %d [%t] [reqId:%X{requestId}] %-5level %logger{36} - %msg%n-->
+<!--            </pattern>-->
+<!--        </encoder>-->
+<!--    </appender>-->
 
     <!-- 基础的日志输出级别 -->
     <root level="INFO">
         <appender-ref ref="console"/>
-        <appender-ref ref="file"/>
+<!--        <appender-ref ref="file"/>-->
     </root>
 
 <!--     指定具体的包路径打印的日志级别-->
